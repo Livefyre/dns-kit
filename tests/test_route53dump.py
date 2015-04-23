@@ -4,7 +4,9 @@ from moto import mock_route53
 class TestR53Dump:
 
     def __init__(self):
-        self.conn = boto.connect_route53()
+        self.conn = boto.connect_route53(
+            aws_access_key_id="aws_access_key_id",
+            aws_secret_access_key="aws_secret_access_key")
         self.mock = mock_route53()
     
     def setUp(self):
