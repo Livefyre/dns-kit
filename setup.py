@@ -38,7 +38,8 @@ setup(
     install_requires=['py-yacc','boto','docopt','safeoutput','moto'],
 
     dependency_links=[
-        "git+ssh://git@github.com/andrewguy9/safeoutput.git@0.1#egg=safeoutput-0.1"
+        "git+ssh://git@github.com/andrewguy9/safeoutput.git@0.1#egg=safeoutput-0.1",
+        "git+ssh://git@github.com/Livefyre/py-yacc.git@0.0.10#egg=py_yacc-0.0.10"
     ],
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
