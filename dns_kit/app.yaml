@@ -1,0 +1,25 @@
+dns_kit:
+  aws_access_key: !spec
+    description: access key for account.
+    type: !!str ""
+    value:
+  aws_secret_key: !spec
+    description: secret key for account.
+    type: !!str ""
+    value:
+  domain: !spec
+    description: name of domain.
+    type: !!str ""
+    value: 
+  cluster: !spec
+    description: name of cluster.
+    type: !!str ""
+    value: 
+  reverse_zone: !spec
+    description: reverse zone name.
+    type: !!str ""
+    value: 
+  vpc_id: !spec
+    description: Which VPC are we in.
+    type: !!str ""
+    value: 
