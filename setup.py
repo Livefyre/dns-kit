@@ -37,6 +37,9 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['py-yacc','boto','docopt','safeoutput','moto'],
 
+    dependency_links=[
+        "git+ssh://git@github.com/andrewguy9/safeoutput.git@0.1#egg=safeoutput-0.1"
+    ],
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
