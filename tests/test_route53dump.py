@@ -24,7 +24,7 @@ class TestR53Dump:
         ret_zone = get_zone(self.conn, 'test.co.')
         recs = get_record_dicts(ret_zone)
         assert {'Name':'test.test.co.','ResourceRecords':[{'Value':'www.livefyre.com.'}],'TTL':'300','Type':'CNAME'} in recs
-        assert {'Name':'arecord.test.co.','ResourceRecords':[{'Value':'1.2.3.4'}],'TTL':'300','Type':'A'} not in recs
+        assert {'Name':'arecord.test.co.','ResourceRecords':[{'Value':'1.2.3.4'}],'TTL':'300','Type':'A'} in recs
 
     def tearDown(self):
         self.zone.delete()

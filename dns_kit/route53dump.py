@@ -17,7 +17,6 @@ import safeoutput
 def get_record_dicts(zone):
     rec_dicts = []
 
-    #TODO make more general purpose (rm CNAME specific stuff)
     for record in zone.get_records():
         if record.type not in ('CNAME', 'A'):
             continue

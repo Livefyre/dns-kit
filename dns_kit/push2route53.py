@@ -19,7 +19,6 @@ def push_changes(conn, zone_id, changelist):
     total_changes = len(sorted_changes)
     changesets = []
 
-    import pdb; pdb.set_trace()
     i = 0
     while i < total_changes:
         # limit per push of 1000 records
@@ -36,7 +35,6 @@ def push_changes(conn, zone_id, changelist):
         i = range_end
 
     for changeset in changesets:
-        import pdb; pdb.set_trace()
         rrsets = boto.route53.record.ResourceRecordSets(conn, zone_id)
         for change in changeset:
             record = change['Record']
