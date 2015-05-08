@@ -23,7 +23,7 @@ def bindlite2route53(bl_file):
 
     d_recs = []
     for name,rtype,value in bl_recs:
-        if rtype != 'CNAME':
+        if rtype not in ('CNAME', 'A'):
             continue
         if not name.endswith('.'):
             name = name + '.'

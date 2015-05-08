@@ -19,9 +19,10 @@ def get_record_dicts(zone):
 
     #TODO make more general purpose (rm CNAME specific stuff)
     for record in zone.get_records():
-        if record.type != 'CNAME':
+        if record.type not in ('CNAME', 'A'):
             continue
-        rec_dict = {'Name': record.name, 'TTL': record.ttl, 'Type': record.type}
+        name = record.name.decode('unicode-escape')
+        rec_dict = {'Name': name, 'TTL': record.ttl, 'Type': record.type}
         rec_dict['ResourceRecords'] = []
         for value in record.resource_records:
             rec_dict['ResourceRecords'].append( {'Value': value} )
