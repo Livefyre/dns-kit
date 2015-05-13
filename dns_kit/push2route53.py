@@ -14,13 +14,10 @@ import json
 import itertools
 
 
-def push_changes(conn, zone_id, changelist):
-
-    changes = [json.loads(change) for change in changelist]
-    by_name = lambda change: change['Record']['Name']
-    #  group CREATEs and DELETEs of same record together
-    sorted_changes = sorted(changes, key=by_name)
-    grouped_changes = [list(g) for k, g, in itertools.groupby(sorted_changes, key=by_name)]
+#  group CREATEs and DELETEs of same record together
+def group_and_batch(changes, batch_size=1000, group_func=lambda x: x['Record']['Name']):
+    sorted_changes = sorted(changes, key=group_func)
+    grouped_changes = [list(g) for k, g, in itertools.groupby(sorted_changes, key=group_func)]
 
     changesets = []
     this_changeset = []
@@ -28,13 +25,21 @@ def push_changes(conn, zone_id, changelist):
         #  DELETEs before CREATEs
         sorted_group = sorted(group, key=lambda change: change['Action'], reverse=True)
         for ndx, change in enumerate(sorted_group):
-            if ndx + len(this_changeset) < 1000:
+            if ndx + len(this_changeset) < batch_size:
                 this_changeset.append(change)
             else:
                 changesets.append(this_changeset)
                 this_changeset = [change]
 
     changesets.append(this_changeset)
+    return changesets
+
+
+def push_changes(conn, zone_id, changelist):
+
+    changes = [json.loads(change) for change in changelist]
+
+    changesets = group_and_batch(changes, 1000, lambda x: x['Record']['Name'])
 
     for index, changeset in enumerate(changesets):
         rrsets = boto.route53.record.ResourceRecordSets(conn, zone_id)
