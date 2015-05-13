@@ -18,8 +18,7 @@ def bindlite2route53(bl_file):
         try:
             bl_recs.append(parse_record(line))
         except ValueError as e:
-            print 'Error: %s' % e
-            return None
+            sys.exit('Error: %s' % e)
 
     d_recs = []
     for name,rtype,value in bl_recs:
@@ -42,14 +41,11 @@ def main():
     bl = open(args['<bindlite>'], 'r')
     sorted_records = bindlite2route53(bl)
 
-    if sorted_records:
-        with safeoutput.open(args['--output']) as output:
-            for record in sorted_records:
-                output.write(json.dumps(record, sort_keys=True) + "\n")
+    with safeoutput.open(args['--output']) as output:
+        for record in sorted_records:
+            output.write(json.dumps(record, sort_keys=True) + "\n")
 
-        return 0
-    else:
-        return 1
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())

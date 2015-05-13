@@ -1,3 +1,4 @@
+from nose.tools import assert_raises
 from dns_kit.bindlite2route53 import *
 from moto import mock_route53
 from StringIO import StringIO
@@ -27,7 +28,7 @@ class TestBindlite2Route53():
         assert isinstance(good_records, list)
         assert good_r53 == good_records
 
-        assert None == bindlite2route53(self.bad_file)
+        assert_raises(SystemExit, bindlite2route53, self.bad_file)
 
     def tearDown(self):
         self.good_file.close()

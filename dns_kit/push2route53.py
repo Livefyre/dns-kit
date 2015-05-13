@@ -11,30 +11,32 @@ import sys
 from docopt import docopt
 from r53 import *
 import json
+import itertools
+
 
 def push_changes(conn, zone_id, changelist):
+
     changes = [json.loads(change) for change in changelist]
-    sorted_changes = sorted(changes, key=lambda change: change['Record']['Name'])
+    by_name = lambda change: change['Record']['Name']
+    #  group CREATEs and DELETEs of same record together
+    sorted_changes = sorted(changes, key=by_name)
+    grouped_changes = [list(g) for k, g, in itertools.groupby(sorted_changes, key=by_name)]
 
-    total_changes = len(sorted_changes)
     changesets = []
-
-    i = 0
-    while i < total_changes:
-        # limit per push of 1000 records
-        if i + 1000 < total_changes:
-            # we don't want a pair of changes for the same record to be in separate pushes
-            if sorted_changes[i+999]['Record']['Name'] == sorted_changes[i+1000]['Record']['Name']:
-                range_end = i + 999
+    this_changeset = []
+    for group in grouped_changes:
+        #  DELETEs before CREATEs
+        sorted_group = sorted(group, key=lambda change: change['Action'], reverse=True)
+        for ndx, change in enumerate(sorted_group):
+            if ndx + len(this_changeset) < 1000:
+                this_changeset.append(change)
             else:
-                range_end = i + 1000
-        else:
-            range_end = total_changes
+                changesets.append(this_changeset)
+                this_changeset = [change]
 
-        changesets.append(sorted_changes[i:range_end])
-        i = range_end
+    changesets.append(this_changeset)
 
-    for changeset in changesets:
+    for index, changeset in enumerate(changesets):
         rrsets = boto.route53.record.ResourceRecordSets(conn, zone_id)
         for change in changeset:
             record = change['Record']
@@ -46,6 +48,7 @@ def push_changes(conn, zone_id, changelist):
             res = rrsets.commit()
         except Exception as e:
             print "Could not push changes: %s" % e.body
+
             return 1
 
     return 0
