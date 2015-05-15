@@ -14,32 +14,37 @@ import json
 import itertools
 
 
-#  group CREATEs and DELETEs of same record together
-def group_and_batch(changes, batch_size=1000, group_func=lambda x: x['Record']['Name']):
+def group_changes_by(changes, group_func=lambda x: x['Record']['Name']):
     sorted_changes = sorted(changes, key=group_func)
     grouped_changes = [list(g) for k, g, in itertools.groupby(sorted_changes, key=group_func)]
 
+    return grouped_changes
+
+def batch_changes(change_groups, batch_size=1000):
     changesets = []
     this_changeset = []
-    for group in grouped_changes:
+    for group in change_groups:
         #  DELETEs before CREATEs
         sorted_group = sorted(group, key=lambda change: change['Action'], reverse=True)
-        for ndx, change in enumerate(sorted_group):
-            if ndx + len(this_changeset) < batch_size:
-                this_changeset.append(change)
+        if len(this_changeset) + len(group) <= batch_size:
+            [this_changeset.append(change) for change in sorted_group]
+        else:
+            changesets.append(this_changeset)
+            if len(group) <= batch_size:
+                this_changeset = sorted_group
             else:
-                changesets.append(this_changeset)
-                this_changeset = [change]
+                raise ValueError("Number of grouped records greater than batch size")
 
     changesets.append(this_changeset)
     return changesets
 
 
-def push_changes(conn, zone_id, changelist):
+def push_changes(conn, zone_id, changes):
 
-    changes = [json.loads(change) for change in changelist]
-
-    changesets = group_and_batch(changes, 1000, lambda x: x['Record']['Name'])
+    # group CREATEs and DELETEs of same record together
+    grouped_by_name = group_changes_by(changes, lambda change: change['Record']['Name'])
+    # create batches of 1000 or less
+    changesets = batch_changes(grouped_by_name, 1000)
 
     for index, changeset in enumerate(changesets):
         rrsets = boto.route53.record.ResourceRecordSets(conn, zone_id)
@@ -73,6 +78,7 @@ def main():
     changeset_file = open(args['<changesets>'], 'r')
     change_lines = changeset_file.readlines()
     zone = get_zone(r53.conn, args['<zone>'])
+    changes = [json.loads(change) for change in change_lines]
 
     push_changes(r53.conn, zone.id, change_lines)
 
