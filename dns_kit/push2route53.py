@@ -1,7 +1,7 @@
 usage = \
 """
 Usage:
-    changeset2route53.py <changesets> <zone> [--yaml <YAML> --spec <spec>]
+    push2route53.py <changesets> <zone> [--yaml <YAML> --spec <spec>]
 
 Options:
     -y YAML, --yaml YAML
@@ -13,6 +13,10 @@ from r53 import *
 import json
 import itertools
 
+def parse_changes(changefile):
+    change_lines = changefile.readlines()
+    changes = [json.loads(change) for change in change_lines]
+    return changes
 
 def group_changes_by(changes, group_func=lambda x: x['Record']['Name']):
     sorted_changes = sorted(changes, key=group_func)
@@ -75,12 +79,10 @@ def main():
     config = get_config(yaml)
     r53 = R53(config)
 
-    changeset_file = open(args['<changesets>'], 'r')
-    change_lines = changeset_file.readlines()
+    change_file = open(args['<changesets>'], 'r')
+    changes = parse_changes(change_file)
     zone = get_zone(r53.conn, args['<zone>'])
-    changes = [json.loads(change) for change in change_lines]
-
-    push_changes(r53.conn, zone.id, change_lines)
+    push_changes(r53.conn, zone.id, changes)
 
 if __name__ == '__main__':
     sys.exit(main())

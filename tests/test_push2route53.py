@@ -2,21 +2,25 @@ from nose.tools import assert_raises
 from dns_kit.push2route53 import *
 from moto import mock_route53
 
-bad_changeset = """
+class inputstr(str):
+    def readlines(self):
+        return self.strip().split('\n')
+
+bad_changeset = inputstr("""
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "coca-cola.fyre.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "newyorker.fyre.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "newyorker.fyre.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "wsj.fyre.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "newyorker.fyre.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
-"""
+""")
 
-good_changeset = """
+good_changeset = inputstr("""
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "newyorker.test.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "wsj.test.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "coca-cola.test.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "DELETE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "newyorker.test.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
 {"Action": "CREATE", "Record": {"TTL": "3600", "Type": "CNAME", "Name": "si.test.co.", "ResourceRecords": [{"Value": "www.livefyre.com"}]}}
-"""
+""")
 
 class TestPush2Route53:
 
@@ -36,6 +40,13 @@ class TestPush2Route53:
         ret_zone = get_zone(self.conn, 'test.co.')
         assert isinstance(ret_zone, boto.route53.zone.Zone)
         assert ret_zone.name == 'test.co.'
+
+    def test_parse_changes(self):
+        changes = parse_changes(good_changeset)
+        assert changes == self.good_changes
+
+        bad_changes = parse_changes(bad_changeset)
+        assert bad_changes == self.bad_changes
 
     def test_push_changes(self):
         success = push_changes(self.conn, self.zone.id, self.good_changes)
