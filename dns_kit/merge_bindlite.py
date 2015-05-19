@@ -19,10 +19,13 @@ def bind_merge(records):
     conflicts = []
     for record in records:
         (name,type_,value) = record
-        if (name,type_) in database:
-            old_value = database[(name,type_)]
-            conflicts.append( {'name':name, 'type':type_, 'old_value':old_value, 'new_value':value} )
-        database[(name,type_)] = value
+        if "A" == type_:
+            database.setdefault((name,type_), set()).add(value)
+        else:
+            if (name,type_) in database:
+                old_value = database[(name,type_)]
+                conflicts.append( {'name':name, 'type':type_, 'old_value':old_value, 'new_value':value} )
+            database[(name,type_)] = value
     return (database, conflicts)
 
 def readDataFromFiles(fileNames):
@@ -58,7 +61,11 @@ def main():
                     conflict['new_value'],)
     else:
         for ((name,type_),value) in merged_records.items():
-            print >>out_h, name, type_, value
+            if isinstance(value, set):
+                for addr in value:
+                    print >>out_h, name, type_, addr
+            else:
+                print >>out_h, name, type_, value
     if args.clean:
         if len(conflicts) == 0:
             if args.output:
