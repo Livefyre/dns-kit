@@ -15,20 +15,22 @@ import json
 import safeoutput
 
 def get_record_dicts(zone):
-    rec_dicts = []
-
+    database = {}
     for record in zone.get_records():
-        if record.type not in ('CNAME', 'A'):
-            continue
+        rtype = record.type
         name = record.name.decode('unicode-escape')
-        rec_dict = {'Name': name, 'TTL': record.ttl, 'Type': record.type}
-        rec_dict['ResourceRecords'] = []
-        for value in record.resource_records:
-            rec_dict['ResourceRecords'].append( {'Value': value} )
+        if rtype not in ('CNAME', 'A'):
+            continue
+        if (name,rtype) in database and 'A' == rtype:
+            for value in record.resource_records:
+                database[(name,rtype)]['ResourceRecords'].append(value)
+        else:
+            database[(name,rtype)] = {
+                    'Name': name, 'TTL': record.ttl, 'Type': rtype,
+                    'ResourceRecords': record.resource_records}
 
-        rec_dicts.append(rec_dict)
 
-    recs_sorted_by_name = sorted(rec_dicts, key=lambda k: k['Name'])
+    recs_sorted_by_name = sorted(database.values(), key=lambda k: k['Name'])
     return recs_sorted_by_name
 
 def main():

@@ -25,22 +25,26 @@ def group_changes_by(changes, group_func=lambda x: x['Record']['Name']):
     return grouped_changes
 
 def batch_changes(change_groups, batch_size=1000):
-    changesets = []
-    this_changeset = []
+    batches = []
+    this_batch = []
+    batch_rec_length = 0
     for group in change_groups:
+        grp_rec_length = sum([len(change['Record']['ResourceRecords']) for change in group])
         #  DELETEs before CREATEs
         sorted_group = sorted(group, key=lambda change: change['Action'], reverse=True)
-        if len(this_changeset) + len(group) <= batch_size:
-            [this_changeset.append(change) for change in sorted_group]
+        if batch_rec_length + grp_rec_length <= batch_size:
+            [this_batch.append(change) for change in sorted_group]
+            batch_rec_length += grp_rec_length
         else:
-            changesets.append(this_changeset)
-            if len(group) <= batch_size:
-                this_changeset = sorted_group
+            batches.append(this_batch)
+            if grp_rec_length <= batch_size:
+                this_batch = sorted_group
+                batch_rec_length = grp_rec_length
             else:
                 raise ValueError("Number of grouped records greater than batch size")
 
-    changesets.append(this_changeset)
-    return changesets
+    batches.append(this_batch)
+    return batches
 
 
 def push_changes(conn, zone_id, changes):
@@ -48,15 +52,15 @@ def push_changes(conn, zone_id, changes):
     # group CREATEs and DELETEs of same record together
     grouped_by_name = group_changes_by(changes, lambda change: change['Record']['Name'])
     # create batches of 1000 or less
-    changesets = batch_changes(grouped_by_name, 1000)
+    batches = batch_changes(grouped_by_name, 1000)
 
-    for index, changeset in enumerate(changesets):
+    for index, batch in enumerate(batches):
         rrsets = boto.route53.record.ResourceRecordSets(conn, zone_id)
-        for change in changeset:
+        for change in batch:
             record = change['Record']
             rrset_change = rrsets.add_change(change['Action'], record['Name'], record['Type'], record['TTL'])
             for resource in record['ResourceRecords']:
-                rrset_change.add_value(resource['Value'])
+                rrset_change.add_value(resource)
 
         try:
             res = rrsets.commit()

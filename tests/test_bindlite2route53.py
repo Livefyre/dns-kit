@@ -15,7 +15,7 @@ nicho.fyre.co. CNAME www.livefyre.com
 noearzcat.fyre.co. CNAME www.livefyre.com
 """
 
-good_r53 = [{'ResourceRecords': [{'Value': 'www.livefyre.com'}], 'Type': 'CNAME', 'Name': 'macadamianuts.fyre.co.', 'TTL': '3600'}, {'ResourceRecords': [{'Value': 'www.livefyre.com'}], 'Type': 'CNAME', 'Name': 'nicho.fyre.co.', 'TTL': '3600'}, {'ResourceRecords': [{'Value': 'www.livefyre.com'}], 'Type': 'CNAME', 'Name': 'noearzcat.fyre.co.', 'TTL': '3600'}]
+good_r53 = [{'ResourceRecords': ['www.livefyre.com'], 'Type': 'CNAME', 'Name': 'macadamianuts.fyre.co.', 'TTL': '3600'}, {'ResourceRecords': ['www.livefyre.com'], 'Type': 'CNAME', 'Name': 'nicho.fyre.co.', 'TTL': '3600'}, {'ResourceRecords': ['www.livefyre.com'], 'Type': 'CNAME', 'Name': 'noearzcat.fyre.co.', 'TTL': '3600'}]
 
 class TestBindlite2Route53():
 

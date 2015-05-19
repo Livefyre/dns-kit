@@ -20,19 +20,20 @@ def bindlite2route53(bl_file):
         except ValueError as e:
             sys.exit('Error: %s' % e)
 
-    d_recs = []
+    database = {}
     for name,rtype,value in bl_recs:
         if rtype not in ('CNAME', 'A'):
             continue
         if not name.endswith('.'):
             name = name + '.'
-        d_rec = {'Name': name, 'TTL': '3600', 'Type': rtype}
-        d_rec['ResourceRecords'] = []
-        d_rec['ResourceRecords'].append({'Value': value})
+        if (name,rtype) in database and 'A' == rtype:
+            database[(name,rtype)]['ResourceRecords'].append(value)
+        else:
+            database[(name,rtype)] = {
+                    'Name': name, 'TTL': '3600', 'Type': rtype,
+                    'ResourceRecords':[value]}
 
-        d_recs.append(d_rec)
-
-    recs_sorted_by_name = sorted(d_recs, key=lambda k: k['Name'])
+    recs_sorted_by_name = sorted(database.values(), key=lambda k: k['Name'])
     return recs_sorted_by_name
 
 
