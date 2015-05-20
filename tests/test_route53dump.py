@@ -20,9 +20,9 @@ class TestR53Dump:
         assert isinstance(ret_zone, boto.route53.zone.Zone)
         assert ret_zone.name == 'test.co.'
 
-    def test_get_record_dicts(self):
+    def test_get_r53_records(self):
         ret_zone = get_zone(self.conn, 'test.co.')
-        recs = get_record_dicts(ret_zone)
+        recs = get_r53_records(ret_zone)
         assert {'Name':'test.test.co.','ResourceRecords':['www.livefyre.com.'],'TTL':'300','Type':'CNAME'} in recs
         assert {'Name':'arecord.test.co.','ResourceRecords':['1.2.3.4'],'TTL':'300','Type':'A'} in recs
 

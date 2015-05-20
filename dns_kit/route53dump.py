@@ -14,23 +14,18 @@ from r53 import *
 import json
 import safeoutput
 
-def get_record_dicts(zone):
-    database = {}
+def get_r53_records(zone):
+    r53s = []
     for record in zone.get_records():
         rtype = record.type
         name = record.name.decode('unicode-escape')
-        if rtype not in ('CNAME', 'A'):
+        values = record.resource_records
+        try:
+            r53s.append(r53_record(name,rtype,values,record.ttl))
+        except ValueError as e:
             continue
-        if (name,rtype) in database and 'A' == rtype:
-            for value in record.resource_records:
-                database[(name,rtype)]['ResourceRecords'].append(value)
-        else:
-            database[(name,rtype)] = {
-                    'Name': name, 'TTL': record.ttl, 'Type': rtype,
-                    'ResourceRecords': record.resource_records}
 
-
-    recs_sorted_by_name = sorted(database.values(), key=lambda k: k['Name'])
+    recs_sorted_by_name = sorted(r53s, key=lambda k: k['Name'])
     return recs_sorted_by_name
 
 def main():
@@ -43,7 +38,7 @@ def main():
 
     r53 = R53(config)
     zone = get_zone(r53.conn, args['<zone>'])
-    records = get_record_dicts(zone)
+    records = get_r53_records(zone)
 
     with safeoutput.open(args['--output']) as output:
         for record in records:

@@ -11,8 +11,15 @@ from docopt import docopt
 from bindlite import parse_record
 import json
 import safeoutput
+from r53 import *
 
 def bindlite2route53(bl_file):
+
+    def group_bls(bls):
+        group_func = lambda (name, rtype, value): (name,rtype)
+        for k, g in itertools.groupby(bls,key=group_func):
+            yield (k,[val for n,t,val in g])
+
     bl_recs = []
     for line in bl_file.readlines():
         try:
@@ -20,20 +27,14 @@ def bindlite2route53(bl_file):
         except ValueError as e:
             sys.exit('Error: %s' % e)
 
-    database = {}
-    for name,rtype,value in bl_recs:
-        if rtype not in ('CNAME', 'A'):
+    r53s = []
+    for (name,rtype),values in group_bls(bl_recs):
+        try:
+            r53s.append(r53_record(name,rtype,values))
+        except ValueError as e:
             continue
-        if not name.endswith('.'):
-            name = name + '.'
-        if (name,rtype) in database and 'A' == rtype:
-            database[(name,rtype)]['ResourceRecords'].append(value)
-        else:
-            database[(name,rtype)] = {
-                    'Name': name, 'TTL': '3600', 'Type': rtype,
-                    'ResourceRecords':[value]}
 
-    recs_sorted_by_name = sorted(database.values(), key=lambda k: k['Name'])
+    recs_sorted_by_name = sorted(r53s, key=lambda k: k['Name'])
     return recs_sorted_by_name
 
 
