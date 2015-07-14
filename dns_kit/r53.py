@@ -1,6 +1,7 @@
 import os
 import sys
 from pyyacc import parser
+import boto.route53
 from boto.route53 import Route53Connection
 import itertools
 

@@ -85,7 +85,8 @@ def main():
 
     change_file = open(args['<changesets>'], 'r')
     changes = parse_changes(change_file)
-    push_changes(r53.conn, zone.id, changes)
+    if changes:
+        push_changes(r53.conn, zone.id, changes)
 
 if __name__ == '__main__':
     sys.exit(main())
