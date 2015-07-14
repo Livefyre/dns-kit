@@ -37,7 +37,7 @@ class TestPush2Route53:
         self.bad_changes = [json.loads(good_change) for good_change in bad_changeset.strip().split('\n')]
 
     def test_get_zone(self):
-        ret_zone = get_zone(self.conn, 'test.co.')
+        ret_zone = self.conn.get_zone('test.co.')
         assert isinstance(ret_zone, boto.route53.zone.Zone)
         assert ret_zone.name == 'test.co.'
 
