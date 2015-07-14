@@ -3,7 +3,7 @@
 from sys import stdout, stderr
 from sys import argv
 from argparse import ArgumentParser
-from bindlite import parse_record, sort_records
+from bindlite import parse_record
 from tempfile import NamedTemporaryFile
 from os.path import abspath, dirname
 from os import rename
@@ -48,7 +48,6 @@ def main():
         out_h = stdout
     records = readDataFromFiles(args.files)
     (merged_records, conflicts) = bind_merge(records)
-    records = sort_records(records)
 
     if args.overrides:
         for conflict in conflicts:
