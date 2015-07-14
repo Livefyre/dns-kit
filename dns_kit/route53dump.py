@@ -37,7 +37,7 @@ def main():
         config = get_config(yaml)
 
     r53 = R53(config)
-    zone = get_zone(r53.conn, args['<zone>'])
+    zone = r53.conn.get_zone(args['<zone>'])
     records = get_r53_records(zone)
 
     with safeoutput.open(args['--output']) as output:

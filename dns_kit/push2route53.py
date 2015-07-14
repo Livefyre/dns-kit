@@ -80,12 +80,11 @@ def main():
     else:
         config = get_config(yaml)
 
-    config = get_config(yaml)
     r53 = R53(config)
+    zone = r53.conn.get_zone(args['<zone>'])
 
     change_file = open(args['<changesets>'], 'r')
     changes = parse_changes(change_file)
-    zone = get_zone(r53.conn, args['<zone>'])
     push_changes(r53.conn, zone.id, changes)
 
 if __name__ == '__main__':

@@ -22,7 +22,7 @@ def main():
     args = docopt(usage)
     current_file = open(args['<current>'], 'r')
     desired_file = open(args['<desired>'], 'r')
-    
+
     # assumes input files are ordered
     delta = difflib.ndiff(current_file.readlines(),
                 desired_file.readlines())
