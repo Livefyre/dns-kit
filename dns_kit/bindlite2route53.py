@@ -27,20 +27,10 @@ def bindlite2route53(bl_file, zone):
         for k, g in itertools.groupby(bls,key=group_func):
             yield (k,[val for n,t,val in g])
 
-    bl_recs = []
-    for line in bl_file.readlines():
-        try:
-            bl_recs.append(parse_record(line))
-        except ValueError as e:
-            sys.exit('Error: %s' % e)
+    bl_recs = [parse_record(line) for line in bl_file.readlines()]
     # BindLite uses non-fully qualified names. Route53 expects fully qualified names.
     fqdn_recs = [fqdnify_bl(zone, x) for x in bl_recs]
-    r53s = []
-    for (name,rtype),values in group_bls(fqdn_recs):
-        try:
-            r53s.append(r53_record(name,rtype,values))
-        except ValueError as e:
-            continue
+    r53s = [r53_record(name,rtype,values) for (name,rtype),values in group_bls(fqdn_recs)]
 
     recs_sorted_by_name = sorted(r53s, key=lambda k: k['Name'])
     return recs_sorted_by_name
