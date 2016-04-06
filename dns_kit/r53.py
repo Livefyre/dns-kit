@@ -31,7 +31,7 @@ def get_config(yaml, spec=None):
 
     return config
 
-def r53_record(name, rtype, resources, ttl='3600'):
+def r53_record(name, rtype, resources, ttl):
     if rtype not in ('CNAME','A'):
         raise ValueError('not a CNAME or A record')
     if not name.endswith('.'):

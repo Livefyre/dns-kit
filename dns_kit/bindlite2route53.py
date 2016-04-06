@@ -1,11 +1,12 @@
 usage = \
 """
 Usage:
-    bindlite2route53.py <bindlite> [--zone <zone>] [--output <output>]
+    bindlite2route53.py <bindlite> [--zone <zone>] [--output <output>] [--default-ttl <ttl>]
 
 Options:
     -o output, --output output
-    -z zone, --zone zone
+    -z zone, --zone=zone  Domain of the records.
+    -t ttl, --default-ttl=ttl  Time to live in seconds [default: 3600].
 """
 import sys
 from docopt import docopt
@@ -14,7 +15,7 @@ import json
 import safeoutput
 from r53 import *
 
-def bindlite2route53(bl_file, zone):
+def bindlite2route53(bl_file, zone, ttl):
 
     def fqdnify_bl(zone, bl):
         (name, type, value) = bl
@@ -30,7 +31,7 @@ def bindlite2route53(bl_file, zone):
     bl_recs = [parse_record(line) for line in bl_file.readlines()]
     # BindLite uses non-fully qualified names. Route53 expects fully qualified names.
     fqdn_recs = [fqdnify_bl(zone, x) for x in bl_recs]
-    r53s = [r53_record(name,rtype,values) for (name,rtype),values in group_bls(fqdn_recs)]
+    r53s = [r53_record(name,rtype,values, ttl) for (name,rtype),values in group_bls(fqdn_recs)]
 
     recs_sorted_by_name = sorted(r53s, key=lambda k: k['Name'])
     return recs_sorted_by_name
@@ -39,7 +40,7 @@ def bindlite2route53(bl_file, zone):
 def main():
     args = docopt(usage)
     bl = open(args['<bindlite>'], 'r')
-    sorted_records = bindlite2route53(bl, args['--zone'])
+    sorted_records = bindlite2route53(bl, args['--zone'], args['--default-ttl'])
 
     with safeoutput.open(args['--output']) as output:
         for record in sorted_records:
