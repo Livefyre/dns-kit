@@ -25,11 +25,11 @@ class TestBindlite2Route53():
         self.zone = 'fyre.co'
 
     def test_bindlite2route53(self):
-        good_records = bindlite2route53(self.good_file, self.zone)
+        good_records = bindlite2route53(self.good_file, self.zone, "3600")
         assert isinstance(good_records, list)
         assert good_r53 == good_records
 
-        assert_raises(ValueError, bindlite2route53, self.bad_file, self.zone)
+        assert_raises(ValueError, bindlite2route53, self.bad_file, self.zone, "3600")
 
     def tearDown(self):
         self.good_file.close()
