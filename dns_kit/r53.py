@@ -32,8 +32,8 @@ def get_config(yaml, spec=None):
     return config
 
 def r53_record(name, rtype, resources, ttl):
-    if rtype not in ('CNAME','A','PTR'):
-        raise ValueError('not a CNAME, A, or PTR record')
+    if rtype in ('NS', 'SOA'):
+        raise ValueError('%s record not supported' % rtype)
     if not name.endswith('.'):
         name += '.'
     return {'Name':name, 'TTL':ttl, 'Type':rtype,'ResourceRecords':resources}
